@@ -1,0 +1,8 @@
+﻿ScriptID,StepID,Description,Keywords,LocatorType,LocatorValue,TestData
+SignIn,Step_1,Mở trình duyệt,openBrowser,null,null,chrome
+,Step_2,Chuyển tới trang web,navigate,null,null,https://sca.vn/
+,Step_3,Nhập tài khoản,setText,xpath,//input[@id='FormLogin_username'],varUsername
+,Step_4,Nhập mật khẩu,setText,xpath,//input[@id='FormLogin_password'],varPassword
+,Step_5,Nhấn nút Đăng nhập,clickElement,tagName,button,
+,Step_6,So sánh kết quả mong đợi,verifyElementText,xpath,"//*[@id=""FormLogin_username_help""]/div | //*[@class=""ant-message""] | //*[@class=""ant-form-item-explain-error""]",varResult
+,Step_7,Đóng trình duyệt,closeBrowser,,,
