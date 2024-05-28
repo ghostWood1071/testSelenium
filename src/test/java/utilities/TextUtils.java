@@ -31,6 +31,8 @@ public class TextUtils {
         this.data.add(cell);
     }
     public void readData(String filePath) {
+        if (this.data.size() > 0)
+            this.data.clear();
         ArrayList<String> headers = new ArrayList<String>();
         boolean firstLine = true;
         try (Scanner scanner = new Scanner(new File(filePath))) {

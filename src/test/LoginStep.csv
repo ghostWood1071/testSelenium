@@ -1,4 +1,4 @@
-﻿ScriptID,StepID,Description,Keywords,LocatorType,LocatorValue,TestData
+ScriptID,StepID,Description,Keywords,LocatorType,LocatorValue,TestData
 SignIn,Step_1,Mở trình duyệt,openBrowser,null,null,chrome
 ,Step_2,Chuyển tới trang web,navigate,null,null,https://sca.vn/
 ,Step_3,Nhập tài khoản,setText,xpath,//input[@id='FormLogin_username'],varUsername

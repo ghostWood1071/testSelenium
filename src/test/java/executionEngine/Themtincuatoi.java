@@ -94,7 +94,7 @@ public class Themtincuatoi {
         String stepSheetName = "Add_eventPage";
         String caseSheetName = "DataOfAdd_event";
         String sPath = "D:\\DO AN\\DATN\\DATN_Selenium\\Testdata.xlsx";
-        ExcelUtils.setExcelFile(sPath, "Add_eventPage");
+        ExcelUtils.setExcelFile(sPath, stepSheetName);
         loadTestCases(caseSheetName);
         loadStep(stepSheetName);
 
