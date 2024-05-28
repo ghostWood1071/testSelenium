@@ -9,8 +9,11 @@ import java.util.Scanner;
 
 public class TextUtils {
     private ArrayList<HashMap<String, String>> data;
+    public ArrayList<String> headers;
+
     public TextUtils(){
         this.data = new ArrayList<HashMap<String, String>>();
+        // this.headers = new ArrayList<String>();
     }
 
     public ArrayList<HashMap<String, String>> getData() {
@@ -33,7 +36,7 @@ public class TextUtils {
     public void readData(String filePath) {
         if (this.data.size() > 0)
             this.data.clear();
-        ArrayList<String> headers = new ArrayList<String>();
+        this.headers = new ArrayList<String>();
         boolean firstLine = true;
         try (Scanner scanner = new Scanner(new File(filePath))) {
             while (scanner.hasNextLine()) {

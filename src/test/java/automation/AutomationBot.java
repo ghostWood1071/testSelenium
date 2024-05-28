@@ -6,9 +6,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import config.ActionKeywords;
 import utilities.TextUtils;
 import utilities.ExcelUtils;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -36,15 +33,32 @@ public class AutomationBot {
         return this.testSteps.get(index);
     }
 
+    public ArrayList<String> getHeader(String sheetName){
+        ArrayList<String> header = new ArrayList<String>();
+        int col = 1;
+        String data;
+        while (true) {
+            data = ExcelUtils.getCellData(0, col);
+            if (data.equals("") || data == null)
+                break;
+            header.add(data);
+            col+=1;
+        }
+        return header;
+    }
+
     public ArrayList<TestCase> loadTestCases(String sheetName) {
         ArrayList<TestCase> testCases = new ArrayList<TestCase>();
+        
         Sheet sheet = ExcelUtils.getSheet(sheetName);
         int rowCount = sheet.getLastRowNum();
+        ArrayList<String> headers = getHeader(sheetName);
         for(int row = 1; row<=rowCount; row++){
-            testCases.add(new TestCase(
-                            ExcelUtils.getCellData(sheetName, row, 1) + "",
-                            ExcelUtils.getCellData(sheetName, row, 2) + ""
-                    )
+            HashMap<String,String> testData = new HashMap<String,String>();
+            for (int i = 0; i < headers.size(); i++){
+                testData.put(headers.get(i), ExcelUtils.getCellData(sheetName, row, i+1));
+            }
+            testCases.add(new TestCase(ExcelUtils.getCellData(sheetName, row, 1) + "", testData)
             );
         }
         // this.testCases = testCases;
@@ -72,10 +86,10 @@ public class AutomationBot {
         return testSteps;
     }
 
-    public ArrayList<TestCase>loadTestCases(ArrayList<HashMap<String, String>> data){
+    public ArrayList<TestCase>loadTestCases(ArrayList<HashMap<String, String>> data, String firstCol){
         ArrayList<TestCase> testCases = new ArrayList<TestCase>();
         for(HashMap<String,String> row: data){
-            testCases.add(new TestCase(row.get("Cases"), row.get("Results")));
+            testCases.add(new TestCase(row.get(firstCol), row));
         }
         // this.testCases = testCases;
         return testCases;
@@ -109,7 +123,7 @@ public class AutomationBot {
         textUtils.readData(stepFile);
         this.testSteps = this.loadStep(textUtils.getData());
         textUtils.readData(caseFile);
-        this.testCases = this.loadTestCases(textUtils.getData());
+        this.testCases = this.loadTestCases(textUtils.getData(), textUtils.headers.get(0));
         
     }
 
@@ -133,8 +147,9 @@ public class AutomationBot {
                     break;
                 case "verifyElementText":
                     boolean isPass;
-                    if(testStep.testData.equals("varResult")) {
-                        isPass = ActionKeywords.verifyElementText(testStep.locatorType, testStep.locatorValue, testCase.caseData);
+                    if(testStep.testData.startsWith("var")) {
+                        String dataVarKey = testStep.testData.replace("var", "");
+                        isPass = ActionKeywords.verifyElementText(testStep.locatorType, testStep.locatorValue, testCase.caseData.get(dataVarKey));
                         results.add("Test case " + (testCaseNum) + " pass: " + isPass);
                     }
                     else
