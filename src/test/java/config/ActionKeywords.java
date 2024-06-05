@@ -157,19 +157,48 @@ public class ActionKeywords {
         element.sendKeys(Value);
     }
 
+    public static void clearText(String locatorType, String locatorValue) {
+        WebElement element = GetElement(locatorType, locatorValue);
+        waitForPageLoaded();
+        wait.until(ExpectedConditions.visibilityOf(element));
+        element.clear();
+        while (!element.getAttribute("value").equals("")) {
+          element.clear();  
+          waitForPageLoaded();
+          wait.until(ExpectedConditions.visibilityOf(element));
+        } 
+    }
+
     public static void setText(String locatorType, String locatorValue, String value) {
         WebElement element = GetElement(locatorType, locatorValue);
         waitForPageLoaded();
         wait.until(ExpectedConditions.visibilityOf(element));
         element.clear();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        element.clear();
         System.out.println(value);
         element.sendKeys(value);
+    }
+
+    public static List<WebElement> getElements(String locatorType, String locatorValue) {
+        List<WebElement> elements;
+        
+        if (locatorType.equalsIgnoreCase("className"))
+            elements = driver.findElements(By.className(locatorValue));
+        else if (locatorType.equalsIgnoreCase("cssSelector"))
+            elements = driver.findElements(By.cssSelector(locatorValue));
+        else if (locatorType.equalsIgnoreCase("id"))
+            elements = driver.findElements(By.id(locatorValue));
+        else if (locatorType.equalsIgnoreCase("partialLinkText"))
+            elements = driver.findElements(By.partialLinkText(locatorValue));
+        else if (locatorType.equalsIgnoreCase("name"))
+            elements = driver.findElements(By.name(locatorValue));
+        else if (locatorType.equalsIgnoreCase("xpath"))
+            elements = driver.findElements(By.xpath(locatorValue));
+        else if (locatorType.equalsIgnoreCase("tagName"))
+            elements = driver.findElements(By.tagName(locatorValue));
+        else
+            elements = driver.findElements(By.xpath(locatorValue));
+
+        return elements;
     }
 
     private static WebElement GetElement(String locatorType, String locatorValue) {

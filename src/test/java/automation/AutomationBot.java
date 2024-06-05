@@ -135,6 +135,7 @@ public class AutomationBot {
     }
 
     public void setText(TestCase testCase, TestStep testStep){
+        ActionKeywords.clearText(testStep.locatorType, testStep.locatorValue);
         if (testStep.testData.startsWith("var")){
             String key = testStep.testData.replace("var", "");
             ActionKeywords.setText(testStep.locatorType, testStep.locatorValue, testCase.caseData.get(key));
@@ -166,6 +167,15 @@ public class AutomationBot {
         return ActionKeywords.verifyUrl(url);
     }
 
+    public void selectOptionByValue(TestCase testCase, TestStep testStep){
+        if (testStep.testData.startsWith("var")){
+            String key = testStep.testData.replace("var", "");
+            ActionKeywords.selectOptionByValue(testStep.locatorType, testStep.locatorValue, testCase.caseData.get(key));
+            return;
+        }
+        ActionKeywords.selectOptionByValue(testStep.locatorType, testStep.locatorValue, testStep.testData);
+    }
+
     public ActionResult executeAction(int testCaseNum, String browserType, TestCase testCase, TestStep testStep) throws Exception {
         ActionResult result = new ActionResult();
         result.actionName = testStep.keywords;
@@ -193,6 +203,9 @@ public class AutomationBot {
                     break;
                 case "closeBrowser":
                     this.quit();
+                    break;
+                case "selectOptionByValue":
+                    this.selectOptionByValue(testCase, testStep);
                     break;
                 default:
                     System.out.println("[>>ERROR<<]: |Keyword Not Found " + testStep.keywords);

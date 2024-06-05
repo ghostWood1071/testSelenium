@@ -1,8 +1,17 @@
 package automation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+import config.ActionKeywords;
+import tech.grasshopper.pdf.pojo.cucumber.Step;
 import utilities.ExcelUtils;
 
 public class MultipleCaseBot extends AutomationBot {
@@ -21,9 +30,37 @@ public class MultipleCaseBot extends AutomationBot {
         }
     }
 
+    public boolean verifyMultipleCondPassword(int testCaseNum, TestStep testStep, TestCase testCase){
+        List<WebElement> elems = ActionKeywords.getElements(testStep.locatorType, testStep.locatorValue);
+        String[] values;
+        ArrayList<String> elemVals = new ArrayList<String>();
+        if(testStep.testData.startsWith("var")){
+            String key = testStep.testData.replace("var", "");
+            values = testCase.caseData.get(key).split(",",-1);
+        } else {
+            values = testStep.testData.split(",", -1);
+        }
+        for(WebElement elem: elems){
+            WebElement icon = elem.findElement(By.tagName("svg"));
+            WebElement iconVal = elem.findElement(By.tagName("span"));
+            if (icon.getAttribute("data-encore-id") == null)
+                elemVals.add(iconVal.getText().replace("\n", " ").replace(" Not met. ,", ""));
+        }
+        Set<String> set = new HashSet<>(Arrays.asList(values));
+        boolean result = elemVals.stream().allMatch(set::contains);
+
+        return result;
+    }
+
     
     @Override
     public boolean verify(int testCaseNum, TestStep testStep, TestCase testCase) {
+        if(testStep.testData.contains("#")){
+            testStep.testData = testStep.testData.replace("#", "");
+            boolean re = this.verifyMultipleCondPassword(testCaseNum, testStep, testCase);
+            testStep.testData = testStep.testData+"#";
+            return re;
+        }
         return super.verify(testCaseNum, testStep, testCase);
     }
 
@@ -37,7 +74,7 @@ public class MultipleCaseBot extends AutomationBot {
                 emailCases.get(index), 
                 this.testSteps.get(step)
             );
-            if(actionR.actionName.equals("verifyUrl") && actionR.actionResult == "true"){
+            if(actionR.actionName.equals("verifyUrl") && actionR.actionResult.equals("true")){
                 stepIndex = step + 2;
                 return stepIndex;
             }
@@ -59,13 +96,13 @@ public class MultipleCaseBot extends AutomationBot {
                     0, 
                     browserType, 
                     pwdCases.get(index), 
-                    this.testSteps.get(stepIndex)
+                    this.testSteps.get(step)
                 );
-                if(actionR.actionName.equals("verifyUrl") && actionR.actionResult == "true"){
-                    stepIndex+=2;
-                    break;
+                if(actionR.actionName.equals("verifyUrl") && actionR.actionResult.equals("true")){
+                    stepIndex= step+2;
+                    return stepIndex;
                 }
-                if(actionR.actionName.equals("verifyElementText") && actionR.actionResult.equals("true")){
+                if(actionR.actionName.equals("verifyElementText")){
                     System.out.println("testcase: " + actionR.actionResult);
                 }
                 stepIndex = step;
@@ -76,18 +113,19 @@ public class MultipleCaseBot extends AutomationBot {
 
     @Override
     public void run() throws Exception {
-        int testCaseNum = 1;
+        // int testCaseNum = 1;
         int stepIndex = 0;
         while (stepIndex<this.testSteps.size()) {
             if (stepIndex >=2 && stepIndex <=5 ){
                 stepIndex = this.doTestEmail(stepIndex, 2, 5);
             }
 
-            else if (stepIndex >=6 && stepIndex<=8){
-                stepIndex = this.doTestPassword(stepIndex, 6, 8);
+            else if (stepIndex >=6 && stepIndex<=9){
+                stepIndex = this.doTestPassword(stepIndex, 6, 9);
             }
 
             else {
+                System.out.println(stepIndex);
                 ActionResult actionR = executeAction(0, 
                     browserType, 
                     null, 

@@ -11,6 +11,10 @@ public class TestStep {
         this.testData = testData;
     }
 
+    public TestStep clone() {
+        return new TestStep(scriptId, stepId, description, keywords, locatorType, locatorValue, testData);
+    }
+
     public String scriptId;
     public String stepId;
     public String description;
