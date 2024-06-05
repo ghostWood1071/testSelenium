@@ -1,22 +1,23 @@
 package automation;
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.apache.poi.ss.usermodel.Sheet;
 
 import config.ActionKeywords;
-import utilities.TextUtils;
 import utilities.ExcelUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
+import utilities.TextUtils;
 
 
 
 public class AutomationBot {
 
     private ArrayList<TestCase> testCases;
-    private ArrayList<TestStep> testSteps;
+    protected ArrayList<TestStep> testSteps;
     private ArrayList<String> results;
-    private String browserType;
+    protected String browserType;
 
     
     public void setBrowserType(String browserType) {
@@ -38,7 +39,7 @@ public class AutomationBot {
         int col = 1;
         String data;
         while (true) {
-            data = ExcelUtils.getCellData(0, col);
+            data = ExcelUtils.getCellData(sheetName, 0, col);
             if (data.equals("") || data == null)
                 break;
             header.add(data);
@@ -49,7 +50,6 @@ public class AutomationBot {
 
     public ArrayList<TestCase> loadTestCases(String sheetName) {
         ArrayList<TestCase> testCases = new ArrayList<TestCase>();
-        
         Sheet sheet = ExcelUtils.getSheet(sheetName);
         int rowCount = sheet.getLastRowNum();
         ArrayList<String> headers = getHeader(sheetName);
@@ -61,7 +61,6 @@ public class AutomationBot {
             testCases.add(new TestCase(ExcelUtils.getCellData(sheetName, row, 1) + "", testData)
             );
         }
-        // this.testCases = testCases;
         return testCases;
     }
 
@@ -127,43 +126,83 @@ public class AutomationBot {
         
     }
 
-    public void executeAction(int testCaseNum, String browserType, TestCase testCase, TestStep testStep) throws Exception {
+    public void openBrowser(String browserType) throws Exception{
+        ActionKeywords.openBrowser(browserType);
+    }
+
+    public void navigate(String url){
+        ActionKeywords.navigate(url);
+    }
+
+    public void setText(TestCase testCase, TestStep testStep){
+        if (testStep.testData.startsWith("var")){
+            String key = testStep.testData.replace("var", "");
+            ActionKeywords.setText(testStep.locatorType, testStep.locatorValue, testCase.caseData.get(key));
+            return;
+        }
+        ActionKeywords.setText(testStep.locatorType, testStep.locatorValue, testStep.testData);
+    }
+
+    public void click(TestStep testStep){
+        ActionKeywords.clickElement(testStep.locatorType, testStep.locatorValue);
+    }
+
+    public boolean verify(int testCaseNum, TestStep testStep, TestCase testCase){
+        boolean isPass = false;
+        if(testStep.testData.startsWith("var")) {
+            String dataVarKey = testStep.testData.replace("var", "");
+            isPass = ActionKeywords.verifyElementText(testStep.locatorType, testStep.locatorValue, testCase.caseData.get(dataVarKey));
+        }
+        else
+            isPass = ActionKeywords.verifyElementText(testStep.locatorType, testStep.locatorValue, testStep.testData);
+        return isPass;
+    }
+
+    public void quit() throws Exception {
+        ActionKeywords.quitDriver();
+    }
+
+    public boolean verifyUrl(String url){
+        return ActionKeywords.verifyUrl(url);
+    }
+
+    public ActionResult executeAction(int testCaseNum, String browserType, TestCase testCase, TestStep testStep) throws Exception {
+        ActionResult result = new ActionResult();
+        result.actionName = testStep.keywords;
         try {
             switch (testStep.keywords) {
                 case "openBrowser":
-                    ActionKeywords.openBrowser(browserType);
+                    this.openBrowser(browserType);
                     break;
                 case "navigate":
-                    ActionKeywords.navigate(testStep.testData);
+                    this.navigate(testStep.testData);
                     break;
                 case "setText":
-                        if (testStep.testData.equals("varCase")){
-                            ActionKeywords.setText(testStep.locatorType, testStep.locatorValue, testCase.caseName);
-                        } else
-                            ActionKeywords.setText(testStep.locatorType, testStep.locatorValue, testStep.testData);
+                    this.setText(testCase, testStep);
                     break;
                 case "clickElement":
-                    ActionKeywords.clickElement(testStep.locatorType, testStep.locatorValue);
+                    this.click(testStep);
                     break;
                 case "verifyElementText":
-                    boolean isPass;
-                    if(testStep.testData.startsWith("var")) {
-                        String dataVarKey = testStep.testData.replace("var", "");
-                        isPass = ActionKeywords.verifyElementText(testStep.locatorType, testStep.locatorValue, testCase.caseData.get(dataVarKey));
-                        results.add("Test case " + (testCaseNum) + " pass: " + isPass);
-                    }
-                    else
-                        isPass = ActionKeywords.verifyElementText(testStep.locatorType, testStep.locatorValue, testStep.testData);
+                    boolean isPass = this.verify(testCaseNum, testStep, testCase);
+                    results.add("Test case " + (testCaseNum) + " pass: " + isPass);
+                    result.actionResult = String.valueOf(isPass);
+                    break;
+                case "verifyUrl":
+                    result.actionResult = String.valueOf(this.verifyUrl(testStep.testData));
                     break;
                 case "closeBrowser":
-                    ActionKeywords.quitDriver();
+                    this.quit();
                     break;
                 default:
                     System.out.println("[>>ERROR<<]: |Keyword Not Found " + testStep.keywords);
             }
+            
         } catch (Exception e) {
             e.getMessage();
+            
         }
+        return result;
     }
     
     public void run() throws Exception {

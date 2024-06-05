@@ -162,6 +162,13 @@ public class ActionKeywords {
         waitForPageLoaded();
         wait.until(ExpectedConditions.visibilityOf(element));
         element.clear();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        element.clear();
+        System.out.println(value);
         element.sendKeys(value);
     }
 
